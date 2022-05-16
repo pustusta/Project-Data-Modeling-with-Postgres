@@ -8,42 +8,69 @@ from sql_queries import *
 def process_song_file(cur, filepath):
     # open song file
     df = pd.read_json(filepath, lines = True)
+    df = df.dropna(axis = 0, how ='any')
 
     # insert song record
     song_data = df[['song_id', 'title', 'artist_id', 'year', 'duration']].values[0].tolist()
+    #song_data = df.loc[:,['song_id', 'title', 'artist_id', 'year', 'duration']].values.tolist()
+    
+    print(song_data)
+
     cur.execute(song_table_insert, song_data)
     
     # insert artist record
     artist_data = df[['artist_id', 'artist_name', 'artist_location', 'artist_latitude', 'artist_longitude']].values[0].tolist()
+    #artist_data = df[:,['artist_id', 'artist_name', 'artist_location', 'artist_latitude', 'artist_longitude']].values.tolist()
+    
+    print(artist_data)
+
     cur.execute(artist_table_insert, artist_data)
 
 
-def process_log_file(cur, filepath):
+#def process_log_file(cur, filepath):
     # open log file
-    df = pd.read_json(filepath, lines = True)
-    df = df.dropna(axis = 0, how ='any')
+   # df = pd.read_json(filepath, lines = True)
+   # df = df.dropna(axis = 0, how ='any')
 
     # filter by NextSong action
-    df = df.loc[df['page'] == 'NextSong', 'page']
+   # df.loc[df['page'] == 'NextSong', 'page'] = df
 
     # convert timestamp column to datetime
     
-    df['datetime'] = pd.to_datetime(df['ts'], unit='ms')
-    t = df[['ts', 'datetime']]
+  #  df['datetime'] = pd.to_datetime(df['ts'], unit='ms')
+  #  t = df[['ts', 'datetime']]
     #t.head()
     
     # insert time data records
     
-    time_data = [t['ts'].values.tolist(), t['datetime'].dt.hour.values.tolist(), t['datetime'].dt.day.values.tolist(), t['datetime'].dt.weekofyear.values.tolist(), t['datetime'].dt.month.values.tolist(), t['datetime'].dt.year.values.tolist(), t['datetime'].dt.weekday.values.tolist()]
+  #  time_data = [t['ts'].values.tolist(), t['datetime'].dt.hour.values.tolist(), t['datetime'].dt.day.values.tolist(), t['datetime'].dt.weekofyear.values.tolist(), t['datetime'].dt.month.values.tolist(), t['datetime'].dt.year.values.tolist(), t['datetime'].dt.weekday.values.tolist()]
 
 
-    column_labels = ['timestamp', 'hour', 'day', 'week of year', 'month', 'year', 'weekday']
+  #  column_labels = ['timestamp', 'hour', 'day', 'week of year', 'month', 'year', 'weekday']
     
     
-    time_dict = dict(zip(column_labels, time_data))
-    time_df = pd.DataFrame.from_dict(time_dict)
+  #  time_dict = dict(zip(column_labels, time_data))
+  #  time_df = pd.DataFrame.from_dict(time_dict)
     
 
+  #  for i, row in time_df.iterrows():
+  #      cur.execute(time_table_insert, list(row))
+    
+    
+def process_log_file(cur, filepath):
+    # open log file
+    df = pd.read_json(filepath,lines=True)
+    df = df.dropna(axis = 0, how ='any')
+    # filter by NextSong action
+    df = df[df['page']=='NextSong']
+    # convert timestamp column to datetime
+    t = pd.to_datetime(df['ts'],unit='ms')
+    df['ts'] = pd.to_datetime(df['ts'],unit='ms')
+    
+    # insert time data records
+    time_data = (t, t.dt.hour, t.dt.day, t.dt.week, t.dt.month, t.dt.year, t.dt.weekday)
+    column_labels = ['start_time','hour','day','week','month','year','weekday']
+    time_df = pd.DataFrame.from_dict(dict(zip(column_labels,time_data)))
     for i, row in time_df.iterrows():
         cur.execute(time_table_insert, list(row))
 

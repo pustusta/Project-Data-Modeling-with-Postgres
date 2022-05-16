@@ -25,7 +25,7 @@ FLOAT, longitude FLOAT);
 
 """)
 
-time_table_create = ("""CREATE TABLE IF NOT EXISTS time (start_time BIGINT NOT NULL PRIMARY KEY, hour INT, day INT, week INT, month INT, year INT, weekday INT);
+time_table_create = ("""CREATE TABLE IF NOT EXISTS time (start_time TIMESTAMP NOT NULL PRIMARY KEY, hour INT, day INT, week INT, month INT, year INT, weekday INT);
 """)
 
 # INSERT RECORDS
